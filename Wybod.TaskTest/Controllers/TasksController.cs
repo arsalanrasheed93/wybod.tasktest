@@ -24,8 +24,7 @@ public class TasksController : ControllerBase
     [HttpGet("{id:guid}")]
     public ActionResult<TaskItem> GetTask(Guid id)
     {
-        // TODO: Implement
-        throw new NotImplementedException();
+        return Ok(_repository.GetById(id));
     }
 
     [HttpPost]

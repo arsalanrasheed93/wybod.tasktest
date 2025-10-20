@@ -61,6 +61,12 @@
                       @click.stop
                       class="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded shadow-lg z-50"
                     >
+                     <button
+                        @click="onViewTask(task.id)"
+                        class="w-full text-left px-3 py-2 hover:bg-gray-100 transition-colors"
+                      >
+                        View
+                      </button>
                       <button
                         @click="onEditTask(task)"
                         class="w-full text-left px-3 py-2 hover:bg-gray-100 transition-colors"
@@ -96,14 +102,26 @@
         <div class="absolute inset-0 bg-black/40" @click="showTaskFormModal = false"></div>
         <div class="relative z-10 p-4">
           <TaskForm
-            :task="editingTask"
+            :task="selectedTask"
             @add="onAddTask"
             @update="onUpdateTask"
-            @close="() => { showTaskFormModal = false; editingTask = null }"
+            @close="() => { showTaskFormModal = false; selectedTask = null }"
           />
         </div>
       </div>
     </transition>
+
+    <transition name="fade">
+      <div v-if="showViewTaskDetailModal" class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/40" @click="showViewTaskDetailModal = false"></div>
+        <div class="relative z-10 p-4">
+          <TaskDetail
+            :task="selectedTask"
+            @close="() => { showViewTaskDetailModal = false; selectedTask = null }"
+          />
+        </div>
+      </div>
+    </transition>    
   </div>
 </template>
 
@@ -119,6 +137,7 @@ import TaskForm from '@/components/ui/TaskForm.vue'
 import { Status } from '@/lib/enums/status'
 import { useToast } from 'vue-toastification'
 import { TaskItem } from '@/lib/models/task-item'
+import TaskDetail from '@/components/ui/TaskDetail.vue'
 
 const toast = useToast()
 const tasks = ref<TaskItem[]>([])
@@ -127,7 +146,10 @@ const error = ref<string | null>(null)
 
 // modal state
 const showTaskFormModal = ref(false)
-const editingTask = ref<TaskItem | null>(null)
+
+const showViewTaskDetailModal = ref(false)
+
+const selectedTask = ref<TaskItem | null>(null)
 
 // filter state
 const activeFilters = ref({ search: '', status: Status.All as Status })
@@ -198,8 +220,25 @@ const onDeleteTask = async (id: string) => {
   }
 }
 
+const onViewTask = async (id: string) => { 
+  try {
+    const res = await fetch(`/api/tasks/${encodeURIComponent(id)}`, { method: 'GET' })
+    if (!res.ok) {
+      throw new Error(`Failed to get task. Please contact with administrator.`)
+    }
+    
+    const data = (await res.json()) as TaskItem
+    selectedTask.value = data
+    showViewTaskDetailModal.value = true
+    openTaskId.value = null
+  } catch (err) {
+    const msg = (err as Error).message || 'Failed to get task'
+    toast.error(msg)
+  }
+}
+
 const onEditTask = (task: TaskItem) => {
-  editingTask.value = task
+  selectedTask.value = task
   showTaskFormModal.value = true
 }
 

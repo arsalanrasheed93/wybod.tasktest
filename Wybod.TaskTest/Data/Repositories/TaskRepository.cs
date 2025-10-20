@@ -26,8 +26,7 @@ public class TaskRepository : ITaskRepository
 
     public TaskItem? GetById(Guid id)
     {
-        // TODO: Implement
-        throw new NotImplementedException();
+        return _dataContext.Tasks.FirstOrDefault(t => t.Id == id);
     }
 
     public TaskItem Create(TaskItem task)
