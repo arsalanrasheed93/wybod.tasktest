@@ -14,6 +14,13 @@
       </div>
 
       <div v-else class="space-y-4">
+        <!-- Add Task button -->
+        <div class="flex justify-end">
+          <button @click="showAddTaskModal = true" class="px-3 py-1 rounded-md bg-indigo-600 text-white text-sm cursor-pointer">
+            Add Task
+          </button>
+        </div>
+
         <FilterTasks @change="onFilterChange" />
 
         <div v-if="filteredTasks.length === 0" class="text-center py-4 text-gray-500">
@@ -46,6 +53,19 @@
         </div>
       </div>
     </div>
+
+    <!-- add new task modal -->
+    <transition name="fade">
+      <div v-if="showAddTaskModal" class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/40" @click="showAddTaskModal = false"></div>
+        <div class="relative z-10 p-4">
+          <AddNewTask
+            @add="(task: any) => onAddTask({ ...task, completedAt: task.completedAt ?? undefined })"
+            @close="showAddTaskModal = false"
+          />
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -57,6 +77,7 @@ import CardTitle from '@/components/ui/CardTitle.vue'
 import CardDescription from '@/components/ui/CardDescription.vue'
 import CardContent from '@/components/ui/CardContent.vue'
 import FilterTasks from '@/components/ui/FilterTasks.vue'
+import AddNewTask from '@/components/ui/AddNewTask.vue'
 import { Status } from '@/lib/enums/status'
 
 interface TaskItem {
@@ -66,11 +87,16 @@ interface TaskItem {
   isCompleted: boolean
   createdAt: string
   completedAt?: string
+  priority?: string | null
+  dueDate?: string | null
 }
 
 const tasks = ref<TaskItem[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
+
+// modal state
+const showAddTaskModal = ref(false)
 
 // filter state
 const activeFilters = ref({ search: '', status: Status.All as Status })
@@ -92,6 +118,12 @@ const filteredTasks = computed(() => {
     return true
   })
 })
+
+// handler for add from modal
+const onAddTask = (task: TaskItem) => {
+  tasks.value.unshift(task)
+  showAddTaskModal.value = false
+}
 
 const fetchTasks = async () => {
   try {
