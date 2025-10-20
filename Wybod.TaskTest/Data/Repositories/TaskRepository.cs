@@ -38,8 +38,15 @@ public class TaskRepository : ITaskRepository
 
     public bool Update(Guid  id, TaskItem task)
     {
-        // TODO: Implement
-        throw new NotImplementedException();
+        var taskData = _dataContext.Tasks.FirstOrDefault(t => t.Id == id);
+        if (taskData == null)
+        {
+            return false;
+        }
+        taskData.IsCompleted = task.IsCompleted;
+        if(task.IsCompleted)
+        taskData.CompletedAt = DateTime.Now;
+        return true;
     }
 
     public bool Delete(Guid id)

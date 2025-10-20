@@ -43,10 +43,9 @@ public class TasksController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    public IActionResult UpdateTask(Guid id, TaskItem task)
+    public IActionResult UpdateTask(Guid id, [FromBody] TaskItem task)
     {
-        // TODO: Implement
-        throw new NotImplementedException();
+        return Ok(_repository.Update(id,task));
     }
 
     [HttpDelete("{id:guid}")]

@@ -159,8 +159,12 @@ const onAddTask = async (task: TaskItem) => {
 }
 
 const onUpdateTask = async (task: TaskItem) => {
-  tasks.value.unshift(task)
+  const index = tasks.value.findIndex(t => t.id === task.id)
+  if (index >= 0) {
+    tasks.value[index] = task
+  }
   showTaskFormModal.value = false
+  openTaskId.value = null
 }
 
 const fetchTasks = async () => {

@@ -159,17 +159,26 @@ const onSubmit = async () => {
   isSubmitting.value = true
 
   const newTask = {
-    id: crypto?.randomUUID?.(),
+    id: props.task?.id ?? crypto?.randomUUID?.(),
     title: title.value.trim(),
     description: description.value.trim(),
-    isCompleted: false,
     createdAt: new Date().toISOString(),
     priority: priority.value,
-    completedAt: completedAt.value ? new Date(completedAt.value).toISOString() : null
+    completedAt: completedAt.value ? new Date(completedAt.value).toISOString() : null,
+    isCompleted: isCompleted.value? Boolean(isCompleted.value):false
   }
 
-   try {
-    // send to server
+  if(!isEditMode) {
+    await createTask(newTask)
+  }
+  else {
+    await editTask(newTask)
+  }
+}
+
+const createTask = async (newTask:TaskItem) => {
+      try {   
+    
     const res = await fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -180,17 +189,42 @@ const onSubmit = async () => {
        toast.error(`Failed to create task (${res.status})`)
     }
     else {
-      const created = (await res.json()) as TaskItem
+      const item = (await res.json()) as TaskItem
 
-      // add to UI
+      if(isEditMode.value)
+        emit('update', item)
+      else
       emit('add', newTask)
       toast.success('Task added')
     }
   } catch (err) {
     toast.error(`Failed to create task (${(err as Error).message})`)
+  } finally {
+    isSubmitting.value = false
   }
-  
-}
+  }
+const editTask = async (task:TaskItem) => {
+    try 
+    {  
+      const res = await fetch(`/api/tasks/${encodeURIComponent(task.id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(task)
+      })
+
+      if (!res.ok) {
+        toast.error(`Failed to update task (${res.status})`)
+      }
+      else {
+        emit('update', task)
+        toast.success('Task updated.')
+      }
+    } catch (err) {
+      toast.error(`Failed to update task (${(err as Error).message})`)
+    } finally {
+      isSubmitting.value = false
+    }
+  }
 
 const onCancel = () => {
   reset()
