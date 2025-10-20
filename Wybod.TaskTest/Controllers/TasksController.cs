@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Wybod.TaskTest.Data.Models;
 using Wybod.TaskTest.Data.Repositories;
+using Wybod.TaskTest.DTOs;
+using Wybod.TaskTest.Services.Interfaces;
 
 namespace Wybod.TaskTest.Controllers;
 
@@ -8,53 +10,43 @@ namespace Wybod.TaskTest.Controllers;
 [Route("api/[controller]")]
 public class TasksController : ControllerBase
 {
-    private readonly ITaskRepository _repository;
-
-    public TasksController(ITaskRepository repository)
+    private readonly ITaskService _taskService;
+    public TasksController(ITaskService taskService)
     {
-        _repository = repository;
+        _taskService = taskService;
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<TaskItem>> GetTasks()
+    public IActionResult GetTasks()
     {
-        return Ok(_repository.GetAll().Where(p=>p.IsActive));
+       return Ok(_taskService.GetAllTasks());
     }
 
-    [HttpGet("{id:guid}")]
-    public ActionResult<TaskItem> GetTask(Guid id)
+        [HttpGet("{id:guid}")]
+    public IActionResult GetTask(Guid id)
     {
-        return Ok(_repository.GetById(id));
+        var task = _taskService.GetTaskById(id);
+        return task is null ? NotFound() : Ok(task);
     }
 
     [HttpPost]
-    public ActionResult<TaskItem> CreateTask([FromBody]  TaskItem task)
+    public IActionResult CreateTask([FromBody] TaskCreateDto dto)
     {
-        try
-        {
-            return Ok(_repository.Create(task));
-        }
-        catch (Exception ex)
-        {
-            //TODO: Log actual exception
-            return BadRequest();
-        }
+        var task = _taskService.CreateTask(dto);
+        return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
     }
 
     [HttpPut("{id:guid}")]
-    public IActionResult UpdateTask(Guid id, [FromBody] TaskItem task)
+    public IActionResult UpdateTask(Guid id, [FromBody] TaskUpdateDto dto)
     {
-        return Ok(_repository.Update(id,task));
+        var updated = _taskService.UpdateTask(id, dto);
+        return updated is null ? NotFound() : Ok(updated);
     }
 
     [HttpDelete("{id:guid}")]
     public IActionResult DeleteTask(Guid id)
     {
-        var deleted = _repository.Delete(id);
-
-        if (!deleted)
-            return NotFound(new { message = $"Task with ID {id} not found." });
-
-        return NoContent();
+        var deleted = _taskService.DeleteTask(id);
+        return deleted ? NoContent() : NotFound();
     }
 }

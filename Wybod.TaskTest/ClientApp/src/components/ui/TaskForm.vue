@@ -168,7 +168,7 @@ const onSubmit = async () => {
     isCompleted: isCompleted.value? Boolean(isCompleted.value):false
   }
 
-  if(!isEditMode) {
+  if(!isEditMode.value) {
     await createTask(newTask)
   }
   else {
