@@ -18,7 +18,7 @@ public class TasksController : ControllerBase
     [HttpGet]
     public ActionResult<IEnumerable<TaskItem>> GetTasks()
     {
-        return Ok(_repository.GetAll());
+        return Ok(_repository.GetAll().Where(p=>p.IsActive));
     }
 
     [HttpGet("{id:guid}")]
@@ -52,7 +52,11 @@ public class TasksController : ControllerBase
     [HttpDelete("{id:guid}")]
     public IActionResult DeleteTask(Guid id)
     {
-        // TODO: Implement
-        throw new NotImplementedException();
+        var deleted = _repository.Delete(id);
+
+        if (!deleted)
+            return NotFound(new { message = $"Task with ID {id} not found." });
+
+        return NoContent();
     }
 }

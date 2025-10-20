@@ -6,4 +6,5 @@ export interface TaskItem {
   createdAt: string
   completedAt?: string| null
   priority?: string | null
+  isActive?: boolean | true
 }

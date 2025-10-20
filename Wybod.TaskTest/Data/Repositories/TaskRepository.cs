@@ -44,7 +44,12 @@ public class TaskRepository : ITaskRepository
 
     public bool Delete(Guid id)
     {
-        // TODO: Implement
-        return false;
+        var task = _dataContext.Tasks.FirstOrDefault(t => t.Id == id);
+        if (task == null)
+        {
+            return false; 
+        }
+        task.IsActive = false;
+        return true; 
     }
 }

@@ -8,5 +8,6 @@ public class TaskItem
     public bool IsCompleted { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
-    public string Priority { get; set; }    
+    public string Priority { get; set; }
+    public bool IsActive { get; set; } = true;
 }
