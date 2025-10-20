@@ -6,6 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IDataContext, DataContext>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddControllers().AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 
 var app = builder.Build();
 

@@ -57,7 +57,7 @@
         <div>
           <label class="block text-sm font-medium text-gray-700">Due Date</label>
           <input
-            v-model="dueDate"
+            v-model="completedAt"
             type="date"
             class="mt-1 pl-1 block w-full rounded-md border border-gray-300 shadow-sm transition-colors duration-150 h-12 focus:border-gray-500 focus:border-gray-500"
           />
@@ -87,26 +87,20 @@
 </template>
 
 <script setup lang="ts">
+import { TaskItem } from '@/lib/models/task-item';
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useToast } from 'vue-toastification'
 
+const toast = useToast()
 const emit = defineEmits<{
-  (e: 'add', task: {
-    id: string
-    title: string
-    description: string
-    isCompleted: boolean
-    createdAt: string
-    completedAt?: string | null
-    priority?: string | null
-    dueDate?: string | null
-  }): void
+  (e: 'add', task: TaskItem): void
   (e: 'close'): void
 }>()
 
 const title = ref('')
 const description = ref('')
 const priority = ref('Medium')
-const dueDate = ref<string | null>(new Date().toISOString().substring(0, 10))
+const completedAt = ref<string | null>(new Date().toISOString().substring(0, 10))
 const isSubmitting = ref(false)
 const descMax = 500
 const touchedTitle = ref(false)
@@ -117,33 +111,47 @@ const reset = () => {
   title.value = ''
   description.value = ''
   priority.value = 'Medium'
-  dueDate.value = null
+  completedAt.value = null
   touchedTitle.value = false
 }
 
-const onSubmit = () => {
+const onSubmit = async () => {
   touchedTitle.value = true
   if (!title.value.trim()) return
   isSubmitting.value = true
 
-  const nowIso = new Date().toISOString()
   const newTask = {
-    id: (Date.now() + Math.floor(Math.random() * 1000)).toString(),
+    id: crypto?.randomUUID?.(),
     title: title.value.trim(),
     description: description.value.trim(),
     isCompleted: false,
-    createdAt: nowIso,
-    completedAt: null,
+    createdAt: new Date().toISOString(),
     priority: priority.value,
-    dueDate: dueDate.value ? new Date(dueDate.value).toISOString() : null
+    completedAt: completedAt.value ? new Date(completedAt.value).toISOString() : null
   }
 
-  emit('add', newTask)
-  setTimeout(() => {
-    isSubmitting.value = false
-    reset()
-    emit('close')
-  }, 200)
+   try {
+    // send to server
+    const res = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newTask)
+    })
+
+    if (!res.ok) {
+       toast.error(`Failed to create task (${res.status})`)
+    }
+    else {
+      const created = (await res.json()) as TaskItem
+
+      // add to UI
+      emit('add', newTask)
+      toast.success('Task added')
+    }
+  } catch (err) {
+    toast.error(`Failed to create task (${(err as Error).message})`)
+  }
+  
 }
 
 const onCancel = () => {

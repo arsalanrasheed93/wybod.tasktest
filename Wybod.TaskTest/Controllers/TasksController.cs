@@ -29,10 +29,17 @@ public class TasksController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<TaskItem> CreateTask(TaskItem task)
+    public ActionResult<TaskItem> CreateTask([FromBody]  TaskItem task)
     {
-        // TODO: Implement
-        throw new NotImplementedException();
+        try
+        {
+            return Ok(_repository.Create(task));
+        }
+        catch (Exception ex)
+        {
+            //TODO: Log actual exception
+            return BadRequest();
+        }
     }
 
     [HttpPut("{id:guid}")]

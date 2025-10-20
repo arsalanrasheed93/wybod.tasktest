@@ -32,8 +32,8 @@ public class TaskRepository : ITaskRepository
 
     public TaskItem Create(TaskItem task)
     {
-        // TODO: Implement
-        throw new NotImplementedException();
+        _dataContext.Tasks.Add(task);
+        return task;
     }
 
     public bool Update(Guid  id, TaskItem task)

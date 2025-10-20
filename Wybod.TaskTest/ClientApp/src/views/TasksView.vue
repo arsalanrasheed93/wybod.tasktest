@@ -79,18 +79,10 @@ import CardContent from '@/components/ui/CardContent.vue'
 import FilterTasks from '@/components/ui/FilterTasks.vue'
 import AddNewTask from '@/components/ui/AddNewTask.vue'
 import { Status } from '@/lib/enums/status'
+import { useToast } from 'vue-toastification'
+import { TaskItem } from '@/lib/models/task-item'
 
-interface TaskItem {
-  id: string
-  title: string
-  description: string
-  isCompleted: boolean
-  createdAt: string
-  completedAt?: string
-  priority?: string | null
-  dueDate?: string | null
-}
-
+const toast = useToast()
 const tasks = ref<TaskItem[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -119,8 +111,8 @@ const filteredTasks = computed(() => {
   })
 })
 
-// handler for add from modal
-const onAddTask = (task: TaskItem) => {
+// handler for add from modal (replaced to POST to /api/CreateTask)
+const onAddTask = async (task: TaskItem) => {
   tasks.value.unshift(task)
   showAddTaskModal.value = false
 }
